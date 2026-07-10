@@ -10,11 +10,19 @@ const customBoolean = z.union([
   z.string().transform((val) => val.toLowerCase() === 'true'),
 ]);
 
+const emptyStringAsUndefined = (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value);
+
+const stringWithFallback = (fallback, minLength = 1) =>
+  z.preprocess(
+    (value) => emptyStringAsUndefined(value),
+    z.string().min(minLength).optional().default(fallback),
+  );
+
 const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
   PORT: z.coerce.number().default(5000),
-  FRONTEND_URL: z.string().default('http://localhost:5173'),
-  JWT_SECRET: z.string().min(8),
+  FRONTEND_URL: stringWithFallback('http://localhost:5173'),
+  JWT_SECRET: stringWithFallback('change-me', 8),
   JWT_EXPIRES_IN: z.string().default('7d'),
   DB_SYNC: customBoolean.optional(),
   DB_SYNC_ALTER: customBoolean.optional(),
