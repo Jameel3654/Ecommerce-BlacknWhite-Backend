@@ -13,6 +13,21 @@ const allowedOrigins = (env.FRONTEND_URL || '')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+app.use((req, res, next) => {
+  if (typeof res.removeHeader !== 'function') {
+    res.removeHeader = (name) => {
+      if (typeof res.getHeader === 'function') {
+        const current = res.getHeader(name);
+        if (current !== undefined) {
+          delete res.headers?.[name];
+        }
+      }
+    };
+  }
+
+  next();
+});
+
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
